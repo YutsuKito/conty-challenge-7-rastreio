@@ -24,7 +24,7 @@ export function createService({aggregator=new FakeAggregator(),now=()=>new Date(
      required(e&&typeof e.event_id==='string'&&!!e.event_id&&typeof e.status==='string'&&!!e.status&&Number.isFinite(Date.parse(e.occurred_at)),'Evento inválido');
      const found=staged.get(e.event_id)??existing.get(e.event_id);
      if(found){
-       if(found.raw_status!==e.status||found.occurred_at!==e.occurred_at) fail('Evento duplicado divergente',409);
+       if(found.raw_status!==e.status||Date.parse(found.occurred_at)!==Date.parse(e.occurred_at)) fail('Evento duplicado divergente',409);
        continue;
      }
      staged.set(e.event_id,{event_id:e.event_id,raw_status:e.status,normalized_status:normalize(e.status),occurred_at:e.occurred_at});

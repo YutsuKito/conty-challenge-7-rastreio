@@ -57,7 +57,7 @@ npm start
 
 Também é possível injetar `new HttpAggregator({baseUrl, timeoutMs, fetchImpl})` em `createService`. Falhas HTTP/rede e JSON ou eventos inválidos produzem 502; timeout produz 504. Não há retry automático neste adaptador. O teste usa um servidor HTTP fictício local e não depende de um provedor externo.
 
-Validação: 12 testes aprovados, incluindo transporte HTTP real local, cadastro sem corpo (204), código com caracteres especiais, duplicatas e eventos fora de ordem, status desconhecido, falha 503 sem cadastro parcial, JSON/eventos inválidos sem alteração de histórico e timeout. `npm run typecheck` verifica sintaxe JavaScript, incluindo o novo adaptador.
+Validação: 16 testes aprovados, incluindo transporte HTTP real local, cadastro sem corpo (204), código com caracteres especiais, duplicatas e eventos fora de ordem, status desconhecido, falha 503 sem cadastro parcial, JSON/eventos inválidos sem alteração de histórico e timeout. `npm run typecheck` verifica sintaxe JavaScript, incluindo o novo adaptador.
 
 Este complemento foi implementado e validado automaticamente pelo Codex após a revisão pessoal anteriormente declarada pelo autor. Cabe ao autor conferir o contrato HTTP e os novos testes antes da submissão.
 
@@ -65,6 +65,15 @@ Este complemento foi implementado e validado automaticamente pelo Codex após a 
 
 A validação do lote também ocorre no serviço, independentemente do adaptador escolhido. `sync` prepara os novos eventos em memória e verifica entradas inválidas, conflitos com o histórico e duplicatas divergentes dentro do próprio lote antes de gravar. Qualquer falha mantém o histórico e a projeção do envio intactos. Duplicatas idênticas continuam sendo idempotentes.
 
-Três regressões reproduziram a gravação parcial antes da correção e passaram depois: evento válido seguido de data inválida ou item nulo, evento novo seguido de conflito com o histórico e duplicatas conflitantes no mesmo lote. O retry corrigido e as duplicatas idênticas também são verificados. Resultado atualizado: 12/12 testes aprovados e checagem sintática dos três arquivos principais aprovada.
+Três regressões reproduziram a gravação parcial antes da correção e passaram depois: evento válido seguido de data inválida ou item nulo, evento novo seguido de conflito com o histórico e duplicatas conflitantes no mesmo lote. O retry corrigido e as duplicatas idênticas também são verificados. Resultado atualizado: 16/16 testes aprovados e checagem sintática dos três arquivos principais aprovada.
 
 Esta correção responde ao problema reproduzido e relatado pelo autor. A implementação e execução das novas regressões foram realizadas pelo Codex.
+
+
+## Verificação completa em 09/10/2026
+
+Eventos repetidos com fusos diferentes são comparados pelo instante, mantendo o histórico original. Acrescentados testes de replay equivalente e estados desconhecidos; a validação integral do lote permanece no serviço.
+
+O transporte HTTP rejeita JSON nulo, arrays e valores primitivos com 400 antes de chamar o serviço. Parâmetros de rota são decodificados uma vez; escape inválido retorna 400. Dois testes de transporte verificam esses comportamentos, incluindo códigos com caracteres especiais.
+
+Resultado desta rodada: 16 testes aprovados, zero falhas; checagem sintática aprovada e smoke HTTP com entrada válida 200 e inválida 400. As correções e a nova validação foram realizadas pelo Codex; não são atribuídas como revisão manual do autor.
