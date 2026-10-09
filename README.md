@@ -57,6 +57,14 @@ npm start
 
 Também é possível injetar `new HttpAggregator({baseUrl, timeoutMs, fetchImpl})` em `createService`. Falhas HTTP/rede e JSON ou eventos inválidos produzem 502; timeout produz 504. Não há retry automático neste adaptador. O teste usa um servidor HTTP fictício local e não depende de um provedor externo.
 
-Validação: 9 testes aprovados, incluindo transporte HTTP real local, cadastro sem corpo (204), código com caracteres especiais, duplicatas e eventos fora de ordem, status desconhecido, falha 503 sem cadastro parcial, JSON/eventos inválidos sem alteração de histórico e timeout. `npm run typecheck` verifica sintaxe JavaScript, incluindo o novo adaptador.
+Validação: 12 testes aprovados, incluindo transporte HTTP real local, cadastro sem corpo (204), código com caracteres especiais, duplicatas e eventos fora de ordem, status desconhecido, falha 503 sem cadastro parcial, JSON/eventos inválidos sem alteração de histórico e timeout. `npm run typecheck` verifica sintaxe JavaScript, incluindo o novo adaptador.
 
 Este complemento foi implementado e validado automaticamente pelo Codex após a revisão pessoal anteriormente declarada pelo autor. Cabe ao autor conferir o contrato HTTP e os novos testes antes da submissão.
+
+## Gravação atômica dos eventos
+
+A validação do lote também ocorre no serviço, independentemente do adaptador escolhido. `sync` prepara os novos eventos em memória e verifica entradas inválidas, conflitos com o histórico e duplicatas divergentes dentro do próprio lote antes de gravar. Qualquer falha mantém o histórico e a projeção do envio intactos. Duplicatas idênticas continuam sendo idempotentes.
+
+Três regressões reproduziram a gravação parcial antes da correção e passaram depois: evento válido seguido de data inválida ou item nulo, evento novo seguido de conflito com o histórico e duplicatas conflitantes no mesmo lote. O retry corrigido e as duplicatas idênticas também são verificados. Resultado atualizado: 12/12 testes aprovados e checagem sintática dos três arquivos principais aprovada.
+
+Esta correção responde ao problema reproduzido e relatado pelo autor. A implementação e execução das novas regressões foram realizadas pelo Codex.
